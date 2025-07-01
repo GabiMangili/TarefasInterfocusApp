@@ -1,6 +1,6 @@
 export enum TaskStatus {
-    Pending = 0,
-    Concluded = 1,
+    Pending = 1,
+    Concluded = 2,
 }
 
 export interface Task {

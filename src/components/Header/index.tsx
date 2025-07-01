@@ -1,3 +1,4 @@
+
 import { StatusBar, View } from "react-native";
 import { globalStyle } from "../../style/styles";
 import { ReactNode } from "react";
@@ -30,9 +31,7 @@ export default function Header({
                     width: 32,
                     alignItems: "flex-start",
                 }}>
-                {iconLeft ? (
-                    <View></View>
-                ) : null}
+                {iconLeft ? iconLeft : null}
             </View>
             {title ? (
                 <Title

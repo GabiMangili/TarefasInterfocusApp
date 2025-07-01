@@ -49,6 +49,12 @@ export const globalStyle = StyleSheet.create({
         padding: 16,
         borderRadius: 5,
     },
+    buttonOutlined: {
+        borderColor: Colors.primary,
+        borderWidth: 1,
+        padding: 16,
+        borderRadius: 5,
+    },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -68,5 +74,29 @@ export const globalStyle = StyleSheet.create({
         paddingTop: 11,
         paddingBottom: 16,
         gap: 16,
+    },
+    backdrop: {
+        flex: 1,
+        justifyContent: "flex-end",
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+    },
+    sheet: {
+        backgroundColor: "white",
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        paddingHorizontal: 16,
+        paddingTop: 24,
+        paddingBottom: 32,
+        minHeight: 100,
+    },
+    tag: {
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 8
+    },
+    statusText: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4
     },
 })

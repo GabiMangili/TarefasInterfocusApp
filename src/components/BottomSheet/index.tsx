@@ -1,52 +1,48 @@
-/* import {
-    BottomSheetBackdrop,
-    BottomSheetModal,
-    BottomSheetModalProps,
-    BottomSheetView,
-} from "@gorhom/bottom-sheet";
-import { ForwardedRef, forwardRef, useCallback } from "react";
-import { View } from "react-native";
+import React, { ReactNode } from "react";
+import {
+    Modal,
+    ModalProps,
+    StyleSheet,
+    TouchableWithoutFeedback,
+    View,
+    ViewStyle,
+} from "react-native";
 import { globalStyle } from "../../style/styles";
-import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
-interface ModalBottomSheetProps extends BottomSheetModalProps {
-    children: React.ReactNode;
+interface ModalCustomBottomSheetProps extends ModalProps {
+    children: ReactNode;
+    onClose: () => void;
+    title?: string;
+    containerStyle?: ViewStyle;
 }
 
-// Ref tipada direto, sem MutableRefObject bagunçado
-const ModalBottomSheet = forwardRef<BottomSheetModalMethods, ModalBottomSheetProps>(
-    ({ style, children, ...props }, ref: ForwardedRef<BottomSheetModalMethods>) => {
-        const renderBackDrop = useCallback((props: any) => {
-            return (
-                <BottomSheetBackdrop
-                    appearsOnIndex={0}
-                    disappearsOnIndex={-1}
-                    pressBehavior="close"
-                    {...props}
-                />
-            );
-        }, []);
+export default function ModalCustomBottomSheet({
+    children,
+    onClose,
+    visible,
+    containerStyle,
+    ...props
+}: ModalCustomBottomSheetProps) {
 
-        return (
-            <BottomSheetModal
-                ref={ref}
-                enableDynamicSizing
-                style={{ shadowColor: "#000", elevation: 10 }}
-                handleIndicatorStyle={globalStyle.bottomSheetIndicator}
-                enablePanDownToClose={false}
-                backgroundStyle={{ borderRadius: 10 }}
-                backdropComponent={renderBackDrop}
-                {...props}
-            >
-                <BottomSheetView>
-                    <View style={[globalStyle.bottomSheet]}>
-                        {children}
-                    </View>
-                </BottomSheetView>
-            </BottomSheetModal>
-        );
-    }
-);
+    return (
+        <Modal
+            transparent
+            visible={visible}
+            animationType="slide"
+            statusBarTranslucent
+            onRequestClose={onClose}
+            {...props}
+        >
+            <TouchableWithoutFeedback onPress={onClose} onPressOut={onClose}>
+                <View style={globalStyle.backdrop}>
+                    <TouchableWithoutFeedback>
+                        <View style={[globalStyle.sheet, containerStyle]}>
+                            {children}
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+            </TouchableWithoutFeedback>
+        </Modal>
+    );
+}
 
-export default ModalBottomSheet;
- */

@@ -1,13 +1,12 @@
-import { FlatList, StatusBar, View } from "react-native";
+import { FlatList, StatusBar, Touchable, TouchableOpacity, View } from "react-native";
 import { globalStyle } from "../../style/styles";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import Title from "../../components/Texts/Title";
-import Header from "../../components/Header";
 import { useTasks } from "../../contexts/tasksContext";
 import Loading from "../../components/Loading";
 import TaskCard from "../../components/TaskCard";
 import { formatDate } from "../../utils";
-import { Task } from "../../types";
+import { Task, TaskStatus } from "../../types";
 import Subtitle from "../../components/Texts/Subtitle";
 import { Colors } from "../../style/colors";
 import CaptionText from "../../components/Texts/CaptionText";
@@ -15,11 +14,15 @@ import FloatingButton from "../../components/Buttons/FloatingButton";
 import { Feather } from "@expo/vector-icons";
 import ButtonText from "../../components/Buttons/ButtonText";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-//import ModalBottomSheet from "../../components/BottomSheet";
+import ModalCustomBottomSheet from "../../components/BottomSheet";
+import Header from "../../components/Header";
+import eventEmitter from "../../events/eventEmitter";
+import ItemTaskScreen from "../ItemTaskScreen";
 
 export default function TasksScreen() {
     const { setTasks, tasks, removeTask } = useTasks();
     const [loading, setLoading] = useState<boolean>(true);
+    const [filter, setFilter] = useState(TaskStatus.Pending);
 
     const statusbarHeight = StatusBar.currentHeight!;
     const bottomSheetRef = useRef<BottomSheetModalMethods>(null);
@@ -28,7 +31,19 @@ export default function TasksScreen() {
 
     useEffect(() => {
         setLoading(false);
-    }, [])
+    }, []);
+
+    useEffect(() => {
+        const listener = (open: boolean) => {
+
+        };
+
+        eventEmitter.on("showBottomSheetFilter", listener);
+
+        return () => {
+            eventEmitter.off("showBottomSheetFilter", listener);
+        };
+    }, []);
 
     function groupTasksByDate(tasks: Task[]) {
         const grouped: { [date: string]: Task[] } = {};
@@ -49,7 +64,6 @@ export default function TasksScreen() {
             .map(([date, tasks]) => ({ date, tasks }));
     }
 
-    console.log('tasks', tasks);
     if (loading) {
         return <View style={globalStyle.container}>
             <Loading />
@@ -67,7 +81,11 @@ export default function TasksScreen() {
                 padding: 8,
                 alignSelf: 'flex-end'
             }}>
-                <Feather name="filter" size={18} color="white" onPress={() => console.log('filtrando')} />
+                <Feather name="filter"
+                    size={18}
+                    color="white"
+                    onPress={() => eventEmitter.emit("showBottomSheetFilter")}
+                />
             </View>
             <FlatList
                 data={groupedTasks}
@@ -78,40 +96,116 @@ export default function TasksScreen() {
                             style={{ marginBottom: 8, fontWeight: '700', color: Colors.accentMuted }}
                         >{item.date}</CaptionText>
                         <View style={{ gap: 8, padding: 4 }}>
-                            {item.tasks.map((task) => (
+                            {item.tasks.filter((task) => (filter & task.status) !== 0).map((task) => (
                                 <TaskCard
                                     key={task.id}
-                                    title={task.title}
-                                    date={task.date}
-                                    description={task.description}
-                                    status={task.status}
+                                    task={task}
                                 />
                             ))}
                         </View>
+
                     </View>
                 )}
                 ItemSeparatorComponent={() => <View style={{ height: 24 }} />}
             />
             <FloatingButton onPress={() => console.log('oi kk')} />
         </View>
-        {/* <ModalBottomSheet ref={bottomSheetRef}>
-            <Title>eai</Title>
-        </ModalBottomSheet> */}
+        <Filter
+            taskStatus={filter}
+            onFilter={(filterStatus: TaskStatus) => { setFilter(filterStatus) }}
+        />
     </View>
 }
 
-const FilterButton = ({ onPress }: any) => {
-    const [opened, setOpened] = useState<boolean>(false);
+const Filter = ({ taskStatus, onFilter }: any) => {
+    const [opened, setOpened] = useState(false);
+    const [filter, setFilter] = useState<TaskStatus>(taskStatus);
+
+    useEffect(() => {
+        const listener = () => {
+            setOpened(true);
+        };
+
+        eventEmitter.on("showBottomSheetFilter", listener);
+
+        return () => {
+            eventEmitter.off("showBottomSheetFilter", listener);
+        };
+    }, []);
 
     function toggleFilter() {
-        setOpened(!opened);
+        setOpened(false);
     }
-    return <View style={{
-        backgroundColor: Colors.primary,
-        borderRadius: 50,
-        padding: 8,
-        alignSelf: 'flex-end'
-    }}>
-        {!opened && <Feather name="filter" size={18} color="white" onPress={toggleFilter} />}
-    </View>
+
+    if (!opened) return null;
+
+    return (
+        <ModalCustomBottomSheet onClose={toggleFilter}>
+            <View style={{ gap: 16 }}>
+                <Title>SELECIONE O FILTRO:</Title>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                        alignSelf: "center",
+                    }}
+                >
+                    <FilterButton
+                        selected={filter === TaskStatus.Pending}
+                        text="Pendentes"
+                        onPress={() => {
+                            setFilter(TaskStatus.Pending);
+                        }}
+                    />
+                    <FilterButton
+                        selected={filter === TaskStatus.Concluded}
+                        text="Concluídas"
+                        onPress={() => {
+                            setFilter(TaskStatus.Concluded);
+                        }}
+                    />
+                    <FilterButton
+                        selected={
+                            filter === (TaskStatus.Pending | TaskStatus.Concluded)
+                        }
+                        text="Todas"
+                        onPress={() => {
+                            setFilter(TaskStatus.Pending | TaskStatus.Concluded);
+                        }}
+                    />
+                </View>
+
+                <View style={{ flexDirection: "row", gap: 8, alignSelf: "flex-end" }}>
+                    <ButtonText text="Cancelar" size="medium" onPress={toggleFilter} />
+                    <ButtonText
+                        text="Filtrar"
+                        size="medium"
+                        onPress={() => {
+                            onFilter(filter);
+                            toggleFilter();
+                        }}
+                    />
+                </View>
+            </View>
+        </ModalCustomBottomSheet>
+    );
+};
+
+
+const FilterButton = ({ selected, text, onPress }: any) => {
+    const textColor = selected ? "white" : Colors.accentMuted;
+    return <TouchableOpacity
+        activeOpacity={0.8}
+        style={{
+            padding: 8,
+            borderRadius: 8,
+            backgroundColor: selected ? Colors.accentMuted : "transparent",
+            borderWidth: 1,
+            borderColor: selected ? "transparent" : Colors.accentMuted
+        }}
+        onPress={onPress}
+    >
+        <Subtitle style={{ color: textColor }}>{text}</Subtitle>
+    </TouchableOpacity>
 }
