@@ -10,3 +10,13 @@ export interface Task {
     status: TaskStatus;
     date: string; // ISO date string
 }
+
+export interface User {
+  access_token: string;
+  expirationDate: string;
+  refreshToken: string;
+  login: string;
+  usuarioId: number;
+  usuarioNome: string;
+  status: number;
+}

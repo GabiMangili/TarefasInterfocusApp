@@ -99,4 +99,10 @@ export const globalStyle = StyleSheet.create({
         alignItems: "center",
         gap: 4
     },
+    bottomButtons: {
+        flexDirection: 'row',
+        gap: 8,
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'flex-end' }
 })

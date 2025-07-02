@@ -13,7 +13,6 @@ import CaptionText from "../../components/Texts/CaptionText";
 import FloatingButton from "../../components/Buttons/FloatingButton";
 import { Feather } from "@expo/vector-icons";
 import ButtonText from "../../components/Buttons/ButtonText";
-import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 import ModalCustomBottomSheet from "../../components/BottomSheet";
 import Header from "../../components/Header";
 import eventEmitter from "../../events/eventEmitter";
@@ -23,11 +22,6 @@ export default function TasksScreen() {
     const { setTasks, tasks, removeTask } = useTasks();
     const [loading, setLoading] = useState<boolean>(true);
     const [filter, setFilter] = useState(TaskStatus.Pending);
-
-    const statusbarHeight = StatusBar.currentHeight!;
-    const bottomSheetRef = useRef<BottomSheetModalMethods>(null);
-    const openBottomSheet = () => bottomSheetRef.current?.present();
-    const closeBottomSheet = () => bottomSheetRef.current?.dismiss();
 
     useEffect(() => {
         setLoading(false);
@@ -79,7 +73,7 @@ export default function TasksScreen() {
                 backgroundColor: Colors.primary,
                 borderRadius: 50,
                 padding: 8,
-                alignSelf: 'flex-end'
+                alignSelf: 'flex-end',
             }}>
                 <Feather name="filter"
                     size={18}
@@ -87,27 +81,28 @@ export default function TasksScreen() {
                     onPress={() => eventEmitter.emit("showBottomSheetFilter")}
                 />
             </View>
-            <FlatList
-                data={groupedTasks}
-                keyExtractor={(item) => item.date}
-                renderItem={({ item }) => (
-                    <View>
-                        <CaptionText
-                            style={{ marginBottom: 8, fontWeight: '700', color: Colors.accentMuted }}
-                        >{item.date}</CaptionText>
-                        <View style={{ gap: 8, padding: 4 }}>
-                            {item.tasks.filter((task) => (filter & task.status) !== 0).map((task) => (
-                                <TaskCard
-                                    key={task.id}
-                                    task={task}
-                                />
-                            ))}
+            <View style={{ width: '100%' }}>
+                <FlatList
+                    data={groupedTasks}
+                    keyExtractor={(item) => item.date}
+                    renderItem={({ item }) => (
+                        <View>
+                            <CaptionText
+                                style={{ marginBottom: 8, fontWeight: '700', color: Colors.accentMuted }}
+                            >{item.date}</CaptionText>
+                            <View style={{ gap: 8, padding: 4, width: '100%' }}>
+                                {item.tasks.filter((task) => (filter & task.status) !== 0).map((task) => (
+                                    <TaskCard
+                                        key={task.id}
+                                        task={task}
+                                    />
+                                ))}
+                            </View>
                         </View>
-
-                    </View>
-                )}
-                ItemSeparatorComponent={() => <View style={{ height: 24 }} />}
-            />
+                    )}
+                    ItemSeparatorComponent={() => <View style={{ height: 24 }} />}
+                />
+            </View>
             <FloatingButton onPress={() => console.log('oi kk')} />
         </View>
         <Filter

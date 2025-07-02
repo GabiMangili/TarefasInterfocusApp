@@ -3,14 +3,28 @@ import { StyleSheet, Text, View } from 'react-native';
 import LoginScreen from './src/screens/LoginScreen';
 import TasksScreen from './src/screens/TasksScreen';
 import TasksProvider from './src/hooks/useTasks';
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import UserProvider from './src/hooks/useUser';
+import { useUser } from './src/contexts/userContext';
 
 export default function App() {
+
   return (
-    <TasksProvider>
-      <TasksScreen />
-    </TasksProvider>
+    <UserProvider>
+      <UserView />
+    </UserProvider>
   );
+}
+
+const UserView = () => {
+  const { user } = useUser();
+
+  if(user){
+    return <TasksProvider>
+    <TasksScreen />
+  </TasksProvider>
+  }
+
+  return <LoginScreen />
 }
 
 const styles = StyleSheet.create({

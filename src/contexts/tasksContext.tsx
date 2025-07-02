@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { Task } from "../types";
+import { Task, User } from "../types";
 
 interface TasksContextType {
     // Define the properties and methods you want to expose in the context
@@ -9,6 +9,15 @@ interface TasksContextType {
     removeTask: (taskId: number) => void;
     updateTask: (taskId: number, updatedTask: Task) => void;
 }
+
+const initialValues = {
+    addTask: () => { },
+    removeTask: () => { },
+    setTasks: () => { },
+    setUser: () => { },
+    tasks: [],
+    updateTask: () => { },
+} as TasksContextType
 
 export const TasksContext = createContext<TasksContextType>({} as TasksContextType);
 export const useTasks = () => useContext(TasksContext);

@@ -14,7 +14,6 @@ export default function Header({
     iconLeft
 }: HeaderProps) {
     const statusbarHeight = StatusBar.currentHeight!;
-    console.log('sadasd', statusbarHeight)
     return <View
         style={[
             {

@@ -1,44 +1,96 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Task, TaskStatus } from "../types";
 import { TasksContext } from "../contexts/tasksContext";
+import { MMKV } from "react-native-mmkv";
+import { StorageService } from "../controllers/mmkvController";
+import { useUser } from "../contexts/userContext";
 
 export default function TasksProvider({ children }: any) {
-    const newTasks = Array.from({ length: 50 }, (_, i) => ({
-        id: i + 1,
-        title: `Task ${i + 1}`,
-        description: `Description for task ${i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
-        status: Math.random() > 0.5 ? TaskStatus.Pending : TaskStatus.Concluded, // Randomly set status to 0 or 1
-        date: new Date().toISOString(), // Current date in ISO format
-    } as Task));
-    const tasks = useRef<Task[]>(newTasks);
+  const { user } = useUser();
+  const [loaded, setLoaded] = useState(false);
+  const tasks = useRef<Task[]>([]);
 
-    function setTasks(newTasks: Task[]) {
-        tasks.current = newTasks;
+  const getStorage = (): MMKV | undefined => {
+    if (user) {
+      return StorageService.storage(user.usuarioId.toString());
     }
+  };
 
-    function addTask(task: Task) {
-        tasks.current.push(task);
+  const saveTasksToStorage = async (updatedTasks: Task[]) => {
+    const storage = getStorage();
+    if (storage) {
+      StorageService.saveData(storage, "tasks", JSON.stringify(updatedTasks));
     }
+  };
 
-    function removeTask(taskId: number) {
-        tasks.current = tasks.current.filter(task => task.id !== taskId);
-    }
-
-    function updateTask(taskId: number, updatedTask: Task) {
-        tasks.current = tasks.current.map(task =>
-            task.id === taskId ? { ...task, ...updatedTask } : task
-        );
-    }
-
-    return <TasksContext.Provider value={
-        {
-            tasks: tasks.current,
-            setTasks,
-            addTask,
-            removeTask,
-            updateTask
+  const loadTasksFromStorage = async () => {
+    const storage = getStorage();
+    if (storage) {
+      const stored = await StorageService.getData(storage, "tasks");
+      if (stored) {
+        try {
+          const parsed: Task[] = JSON.parse(stored);
+          tasks.current = parsed;
+        } catch (e) {
+          console.error("Erro ao carregar tasks do storage:", e);
         }
-    }>
-        {children}
+      } else {
+        // Nenhuma task salva — pode usar lista padrão se quiser
+        tasks.current = Array.from({ length: 50 }, (_, i) => ({
+          id: i + 1,
+          title: `Task ${i + 1}`,
+          description: `Description for task ${i + 1}`,
+          status: Math.random() > 0.5 ? TaskStatus.Pending : TaskStatus.Concluded,
+          date: new Date().toISOString(),
+        }));
+        saveTasksToStorage(tasks.current);
+      }
+      setLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    loadTasksFromStorage();
+  }, [user]);
+
+  const setTasks = (newTasks: Task[]) => {
+    tasks.current = newTasks;
+    saveTasksToStorage(newTasks);
+  };
+
+  const addTask = (task: Task) => {
+    const updated = [...tasks.current, task];
+    tasks.current = updated;
+    saveTasksToStorage(updated);
+  };
+
+  const removeTask = (taskId: number) => {
+    const updated = tasks.current.filter((task) => task.id !== taskId);
+    tasks.current = updated;
+    saveTasksToStorage(updated);
+  };
+
+  const updateTask = (taskId: number, updatedTask: Task) => {
+    const updated = tasks.current.map((task) =>
+      task.id === taskId ? { ...task, ...updatedTask } : task
+    );
+    tasks.current = updated;
+    saveTasksToStorage(updated);
+  };
+
+  if (!loaded) return null; // ou um spinner se preferir
+
+  return (
+    <TasksContext.Provider
+      value={{
+        tasks: tasks.current,
+        setTasks,
+        addTask,
+        removeTask,
+        updateTask,
+      }}
+    >
+      {children}
     </TasksContext.Provider>
+  );
 }

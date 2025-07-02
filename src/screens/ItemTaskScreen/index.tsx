@@ -14,13 +14,11 @@ interface ItemTaskScreenProps {
     onClose: () => void
 }
 
-
-
 export default function ItemTaskScreen({ task, onClose }: ItemTaskScreenProps) {
     const pending = task.status === TaskStatus.Pending;
     return <Modal style={globalStyle.container} statusBarTranslucent>
         <Header title={`Tarefa ${task.title}`} iconLeft={<Feather name="x" onPress={onClose} size={16} />} />
-        <View style={[globalStyle.screen]}>
+        <View style={[globalStyle.screen, {justifyContent: 'flex-start', alignItems: 'flex-start'}]}>
             <ScrollView>
                 <View style={{ justifyContent: 'flex-start', alignItems: 'flex-start', gap: 16, flex: 1 }}>
                     <View style={[globalStyle.tag, { backgroundColor: pending ? Colors.pendingOpacity : Colors.concludedOpacity }]}>
@@ -48,7 +46,7 @@ export default function ItemTaskScreen({ task, onClose }: ItemTaskScreenProps) {
 
                 </View>
             </ScrollView>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={globalStyle.bottomButtons}>
                 <ButtonText text="Voltar" variant="outlined" />
                 <ButtonText text={`Marcar como ${pending ? "concluída" : "pendente"}`} />
             </View>
