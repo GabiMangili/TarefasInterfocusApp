@@ -9,6 +9,7 @@ export default function TasksProvider({ children }: any) {
   const { user } = useUser();
   const [loaded, setLoaded] = useState(false);
   const tasks = useRef<Task[]>([]);
+  const [_, rerender] = useState(0);
 
   const getStorage = (): MMKV | undefined => {
     if (user) {
@@ -59,11 +60,19 @@ export default function TasksProvider({ children }: any) {
   };
 
   const addTask = (task: Task) => {
-    const updated = [...tasks.current, task];
+    const newTask = {
+        ...task,
+        id: tasks.current.length + 1,
+        date: new Date().toISOString()
+    } as Task;
+    console.log('new task: ', newTask)
+    const updated = [...tasks.current, newTask];
     tasks.current = updated;
     saveTasksToStorage(updated);
+    rerender(prev => prev + 1);
   };
 
+  console.log('tasks.current', tasks.current)
   const removeTask = (taskId: number) => {
     const updated = tasks.current.filter((task) => task.id !== taskId);
     tasks.current = updated;

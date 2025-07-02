@@ -9,11 +9,13 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-navigation/stack": "^7.4.2",
     "expo": "~53.0.13",
     "expo-status-bar": "~2.2.3",
     "expo-web-browser": "~14.2.0",
     "react": "19.0.0",
     "react-native": "0.79.4",
+    "react-native-gesture-handler": "^2.27.1",
     "react-native-mmkv": "^3.3.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { FlatList, StatusBar, Touchable, TouchableOpacity, View } from "react-native";
 import { globalStyle } from "../../style/styles";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Title from "../../components/Texts/Title";
 import { useTasks } from "../../contexts/tasksContext";
 import Loading from "../../components/Loading";
@@ -17,46 +17,66 @@ import ModalCustomBottomSheet from "../../components/BottomSheet";
 import Header from "../../components/Header";
 import eventEmitter from "../../events/eventEmitter";
 import ItemTaskScreen from "../ItemTaskScreen";
+import AddTaskScreen from "../AddTaskScreen";
 
 export default function TasksScreen() {
     const { setTasks, tasks, removeTask } = useTasks();
     const [loading, setLoading] = useState<boolean>(true);
+    const [_, rerender] = useState(0);
     const [filter, setFilter] = useState(TaskStatus.Pending);
 
     useEffect(() => {
         setLoading(false);
     }, []);
 
-    useEffect(() => {
-        const listener = (open: boolean) => {
+    const handlers = useMemo(() => [], []);
 
-        };
+    const pubSub = useMemo(() => {
+        const handlers: ((id: number) => void)[] = [];
 
-        eventEmitter.on("showBottomSheetFilter", listener);
-
-        return () => {
-            eventEmitter.off("showBottomSheetFilter", listener);
+        return {
+            subscribe: (handler: (id: number) => void) => {
+                console.log('caiu aq')
+                handlers.push(handler);
+                console.log('handlers', handlers)
+            },
+            publish: (id: number) => {
+                handlers.forEach(h => h(id));
+            },
         };
     }, []);
+
+
+    const onSelectValue = (id: any) => {
+        pubSub.publish(selected.current.id);
+
+    };
 
     function groupTasksByDate(tasks: Task[]) {
         const grouped: { [date: string]: Task[] } = {};
 
         tasks.forEach((task) => {
-            const dateKey = formatDate(task.date);
+            const dateKey = formatDate(task.date); // ex: 02/07/2025
             if (!grouped[dateKey]) grouped[dateKey] = [];
             grouped[dateKey].push(task);
         });
 
-        // transforma o objeto em array e ordena por data (mais recente primeiro)
         return Object.entries(grouped)
+            // ordena os grupos por data (mais recente primeiro)
             .sort(([dateA], [dateB]) => {
                 const [dA, mA, yA] = dateA.split("/").map(Number);
                 const [dB, mB, yB] = dateB.split("/").map(Number);
                 return new Date(yB, mB - 1, dB).getTime() - new Date(yA, mA - 1, dA).getTime();
             })
-            .map(([date, tasks]) => ({ date, tasks }));
+            .map(([date, tasks]) => ({
+                date,
+                // ordena as tasks por horário (mais recentes primeiro)
+                tasks: tasks.sort(
+                    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+                ),
+            }));
     }
+
 
     if (loading) {
         return <View style={globalStyle.container}>
@@ -66,6 +86,7 @@ export default function TasksScreen() {
 
     const groupedTasks = groupTasksByDate(tasks);
 
+    console.log('RERENDER', tasks)
     return <View style={globalStyle.container}>
         <Header title="TAREFAS" />
         <View style={globalStyle.screen}>
@@ -95,7 +116,9 @@ export default function TasksScreen() {
                                     <TaskCard
                                         key={task.id}
                                         task={task}
+                                        subscribe={pubSub.subscribe}
                                     />
+
                                 ))}
                             </View>
                         </View>
@@ -103,14 +126,16 @@ export default function TasksScreen() {
                     ItemSeparatorComponent={() => <View style={{ height: 24 }} />}
                 />
             </View>
-            <FloatingButton onPress={() => console.log('oi kk')} />
+            <FloatingButton onPress={() => eventEmitter.emit("openAddTaskScreen")} />
         </View>
         <Filter
             taskStatus={filter}
             onFilter={(filterStatus: TaskStatus) => { setFilter(filterStatus) }}
         />
+        {<AddTaskScreen rerender={() => { rerender(prev => prev + 1) }} />}
     </View>
 }
+
 
 const Filter = ({ taskStatus, onFilter }: any) => {
     const [opened, setOpened] = useState(false);

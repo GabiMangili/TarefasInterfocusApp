@@ -4,11 +4,11 @@ export enum TaskStatus {
 }
 
 export interface Task {
-    id: number;
+    id?: number;
     title: string;
     description: string;
     status: TaskStatus;
-    date: string; // ISO date string
+    date?: string; // ISO date string
 }
 
 export interface User {
