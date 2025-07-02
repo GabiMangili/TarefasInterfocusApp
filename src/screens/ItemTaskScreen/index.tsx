@@ -3,7 +3,6 @@ import { globalStyle } from "../../style/styles";
 import Header from "../../components/Header";
 import { Task, TaskStatus } from "../../types";
 import { Feather } from '@expo/vector-icons';
-import CaptionText from "../../components/Texts/CaptionText";
 import Subtitle from "../../components/Texts/Subtitle";
 import { Colors } from "../../style/colors";
 import { formatDate } from "../../utils";

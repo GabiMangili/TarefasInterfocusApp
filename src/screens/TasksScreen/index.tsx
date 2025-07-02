@@ -21,7 +21,7 @@ import { useUser } from "../../contexts/userContext";
 
 export default function TasksScreen() {
     const { tasks, removeAnyTasks } = useTasks();
-    const {setUser, logout} = useUser();
+    const { logout} = useUser();
     const [loading, setLoading] = useState<boolean>(true);
     const [_, rerender] = useState(0);
     const [filter, setFilter] = useState(TaskStatus.Pending);
@@ -105,7 +105,9 @@ export default function TasksScreen() {
         <View style={[globalStyle.screen, {}]}>
             <View style={{ flexDirection: 'row', paddingTop: 40, gap: 16, alignSelf: 'flex-end' }}>
                 <ButtonDelete deleteTasksSelected={deleteTasksSelected} />
-                <View style={{
+                <TouchableOpacity
+                onPress={() => eventEmitter.emit("showBottomSheetFilter")}
+                 style={{
                     backgroundColor: Colors.primary,
                     borderRadius: 50,
                     padding: 8,
@@ -114,10 +116,12 @@ export default function TasksScreen() {
                     <Feather name="filter"
                         size={18}
                         color="white"
-                        onPress={() => eventEmitter.emit("showBottomSheetFilter")}
                     />
-                </View>
-                <View style={{
+                </TouchableOpacity>
+                <TouchableOpacity
+                                        onPress={() => logout()}
+
+                style={{
                     backgroundColor: Colors.primary,
                     borderRadius: 50,
                     padding: 8,
@@ -126,9 +130,8 @@ export default function TasksScreen() {
                     <Feather name="log-in"
                         size={18}
                         color="white"
-                        onPress={() => logout()}
                     />
-                </View>
+                </TouchableOpacity>
             </View>
             <View style={{ width: '100%' }}>
                 <FlatList
