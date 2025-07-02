@@ -16,11 +16,10 @@ import ButtonText from "../../components/Buttons/ButtonText";
 import ModalCustomBottomSheet from "../../components/BottomSheet";
 import Header from "../../components/Header";
 import eventEmitter from "../../events/eventEmitter";
-import ItemTaskScreen from "../ItemTaskScreen";
 import AddTaskScreen from "../AddTaskScreen";
 
 export default function TasksScreen() {
-    const { setTasks, tasks, removeTask } = useTasks();
+    const { tasks, removeAnyTasks } = useTasks();
     const [loading, setLoading] = useState<boolean>(true);
     const [_, rerender] = useState(0);
     const [filter, setFilter] = useState(TaskStatus.Pending);
@@ -29,28 +28,41 @@ export default function TasksScreen() {
         setLoading(false);
     }, []);
 
-    const handlers = useMemo(() => [], []);
+    const tasksSelected = useRef<number[]>([]);
 
-    const pubSub = useMemo(() => {
-        const handlers: ((id: number) => void)[] = [];
+    const onSelectValue = (id: number) => {
+        const index = tasksSelected.current.indexOf(id);
 
-        return {
-            subscribe: (handler: (id: number) => void) => {
-                console.log('caiu aq')
-                handlers.push(handler);
-                console.log('handlers', handlers)
-            },
-            publish: (id: number) => {
-                handlers.forEach(h => h(id));
-            },
-        };
-    }, []);
+        if (index !== -1) {
+            // Já existe: remove
+            tasksSelected.current.splice(index, 1);
 
+            if (tasksSelected.current.length === 0) {
+                eventEmitter.emit("hasTaskSelected", false);
+            }
 
-    const onSelectValue = (id: any) => {
-        pubSub.publish(selected.current.id);
+        } else {
+            // Não existe: adiciona
+            tasksSelected.current.push(id);
+            if (tasksSelected.current.length > 0) {
+                eventEmitter.emit("hasTaskSelected", true);
+            }
 
+        }
     };
+
+    function deleteTasksSelected() {
+        setLoading(true);
+
+        const selected = [...tasksSelected.current];
+        removeAnyTasks(selected);
+
+        selected.forEach(id => onSelectValue(id));
+
+        setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+    }
 
     function groupTasksByDate(tasks: Task[]) {
         const grouped: { [date: string]: Task[] } = {};
@@ -77,7 +89,6 @@ export default function TasksScreen() {
             }));
     }
 
-
     if (loading) {
         return <View style={globalStyle.container}>
             <Loading />
@@ -86,21 +97,23 @@ export default function TasksScreen() {
 
     const groupedTasks = groupTasksByDate(tasks);
 
-    console.log('RERENDER', tasks)
     return <View style={globalStyle.container}>
         <Header title="TAREFAS" />
-        <View style={globalStyle.screen}>
-            <View style={{
-                backgroundColor: Colors.primary,
-                borderRadius: 50,
-                padding: 8,
-                alignSelf: 'flex-end',
-            }}>
-                <Feather name="filter"
-                    size={18}
-                    color="white"
-                    onPress={() => eventEmitter.emit("showBottomSheetFilter")}
-                />
+        <View style={[globalStyle.screen, {}]}>
+            <View style={{ flexDirection: 'row', paddingTop: 40, gap: 16, alignSelf: 'flex-end' }}>
+                <ButtonDelete deleteTasksSelected={deleteTasksSelected} />
+                <View style={{
+                    backgroundColor: Colors.primary,
+                    borderRadius: 50,
+                    padding: 8,
+                    alignSelf: 'flex-end',
+                }}>
+                    <Feather name="filter"
+                        size={18}
+                        color="white"
+                        onPress={() => eventEmitter.emit("showBottomSheetFilter")}
+                    />
+                </View>
             </View>
             <View style={{ width: '100%' }}>
                 <FlatList
@@ -116,9 +129,8 @@ export default function TasksScreen() {
                                     <TaskCard
                                         key={task.id}
                                         task={task}
-                                        subscribe={pubSub.subscribe}
+                                        onSelect={onSelectValue}
                                     />
-
                                 ))}
                             </View>
                         </View>
@@ -128,12 +140,42 @@ export default function TasksScreen() {
             </View>
             <FloatingButton onPress={() => eventEmitter.emit("openAddTaskScreen")} />
         </View>
+
         <Filter
             taskStatus={filter}
             onFilter={(filterStatus: TaskStatus) => { setFilter(filterStatus) }}
         />
         {<AddTaskScreen rerender={() => { rerender(prev => prev + 1) }} />}
     </View>
+}
+
+const ButtonDelete = ({ deleteTasksSelected }: any) => {
+    const [hasTaskSelected, setHasTaskSelected] = useState<boolean>(false);
+
+    useEffect(() => {
+        const listener = (hasSelected: boolean) => {
+            setHasTaskSelected(hasSelected);
+        };
+
+        eventEmitter.on("hasTaskSelected", listener);
+
+        return () => {
+            eventEmitter.off("hasTaskSelected", listener);
+        };
+    }, []);
+
+    if (hasTaskSelected) {
+        return <ButtonText
+            text="Excluir selecionados"
+            color="deleted"
+            prefixIcon={<Feather name="x-circle" size={18} color={Colors.deleted} />}
+            size="medium"
+            onPress={() => {
+                deleteTasksSelected()
+            }}
+        />
+    }
+
 }
 
 

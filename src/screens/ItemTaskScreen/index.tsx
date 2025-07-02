@@ -8,6 +8,7 @@ import Subtitle from "../../components/Texts/Subtitle";
 import { Colors } from "../../style/colors";
 import { formatDate } from "../../utils";
 import ButtonText from "../../components/Buttons/ButtonText";
+import { useTasks } from "../../contexts/tasksContext";
 
 interface ItemTaskScreenProps {
     task: Task
@@ -15,6 +16,7 @@ interface ItemTaskScreenProps {
 }
 
 export default function ItemTaskScreen({ task, onClose }: ItemTaskScreenProps) {
+    const {updateTask} = useTasks();
     const pending = task.status === TaskStatus.Pending;
     return <Modal style={globalStyle.container} statusBarTranslucent>
         <Header title={`Tarefa ${task.title}`} iconLeft={<Feather name="x" onPress={onClose} size={16} />} />
@@ -47,8 +49,10 @@ export default function ItemTaskScreen({ task, onClose }: ItemTaskScreenProps) {
                 </View>
             </ScrollView>
             <View style={globalStyle.bottomButtons}>
-                <ButtonText text="Voltar" variant="outlined" />
-                <ButtonText text={`Marcar como ${pending ? "concluída" : "pendente"}`} />
+                <ButtonText text="Voltar" variant="outlined" onPress={() => {onClose()}}/>
+                <ButtonText text={`Marcar como ${pending ? "concluída" : "pendente"}`} onPress={() => {
+                    updateTask(task.id!, { status: pending ? TaskStatus.Concluded : TaskStatus.Pending });
+                }}/>
             </View>
         </View>
 

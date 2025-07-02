@@ -5,9 +5,9 @@ export enum TaskStatus {
 
 export interface Task {
     id?: number;
-    title: string;
-    description: string;
-    status: TaskStatus;
+    title?: string;
+    description?: string;
+    status?: TaskStatus;
     date?: string; // ISO date string
 }
 

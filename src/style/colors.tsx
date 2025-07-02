@@ -12,8 +12,8 @@ export const Colors = {
     secondary: "#F7C8A3", // Bege Claro
     accentMuted: "#626262",
 
-    delete: "#D95C5C", // Vermelho
-    deleteOpacity: "rgba(217, 92, 92, 0.15)",
+    deleted: "#D95C5C", // Vermelho
+    deletedOpacity: "rgba(217, 92, 92, 0.15)",
 
     pending: "#F5A25D", // Laranja
     pendingOpacity: "rgba(245, 162, 93, 0.15)",

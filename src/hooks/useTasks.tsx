@@ -61,23 +61,29 @@ export default function TasksProvider({ children }: any) {
 
   const addTask = (task: Task) => {
     const newTask = {
-        ...task,
-        id: tasks.current.length + 1,
-        date: new Date().toISOString()
+      ...task,
+      id: tasks.current.length + 1,
+      date: new Date().toISOString()
     } as Task;
-    console.log('new task: ', newTask)
     const updated = [...tasks.current, newTask];
     tasks.current = updated;
     saveTasksToStorage(updated);
     rerender(prev => prev + 1);
   };
 
-  console.log('tasks.current', tasks.current)
   const removeTask = (taskId: number) => {
     const updated = tasks.current.filter((task) => task.id !== taskId);
     tasks.current = updated;
     saveTasksToStorage(updated);
   };
+
+  const removeAnyTasks = (taskIds: number[]) => {
+    const updated = tasks.current.filter((task) => !taskIds.includes(task.id));
+    tasks.current = updated;
+    saveTasksToStorage(updated);
+    rerender(prev => prev + 1);
+  };
+
 
   const updateTask = (taskId: number, updatedTask: Task) => {
     const updated = tasks.current.map((task) =>
@@ -85,6 +91,7 @@ export default function TasksProvider({ children }: any) {
     );
     tasks.current = updated;
     saveTasksToStorage(updated);
+    rerender(prev => prev + 1);
   };
 
   if (!loaded) return null; // ou um spinner se preferir
@@ -97,6 +104,7 @@ export default function TasksProvider({ children }: any) {
         addTask,
         removeTask,
         updateTask,
+        removeAnyTasks
       }}
     >
       {children}

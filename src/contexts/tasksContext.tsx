@@ -8,16 +8,8 @@ interface TasksContextType {
     addTask: (task: Task) => void;
     removeTask: (taskId: number) => void;
     updateTask: (taskId: number, updatedTask: Task) => void;
+    removeAnyTasks: (tasks: number[]) => void;
 }
-
-const initialValues = {
-    addTask: () => { },
-    removeTask: () => { },
-    setTasks: () => { },
-    setUser: () => { },
-    tasks: [],
-    updateTask: () => { },
-} as TasksContextType
 
 export const TasksContext = createContext<TasksContextType>({} as TasksContextType);
 export const useTasks = () => useContext(TasksContext);
