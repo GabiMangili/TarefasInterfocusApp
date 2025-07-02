@@ -61,6 +61,7 @@ export default function AddTaskScreen({rerender}: any) {
                             padding: 12,
                             fontSize: 16,
                             backgroundColor: '#fff',
+                            color: '#000'
                         }}
                     />
                 </View>
@@ -80,6 +81,7 @@ export default function AddTaskScreen({rerender}: any) {
                             fontSize: 16,
                             height: 120,
                             backgroundColor: '#fff',
+                            color: '#000'
                         }}
                     />
                 </View>
