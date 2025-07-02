@@ -17,6 +17,8 @@ export default function TasksProvider({ children }: any) {
     }
   };
 
+  
+
   const saveTasksToStorage = async (updatedTasks: Task[]) => {
     const storage = getStorage();
     if (storage) {

@@ -17,9 +17,11 @@ import ModalCustomBottomSheet from "../../components/BottomSheet";
 import Header from "../../components/Header";
 import eventEmitter from "../../events/eventEmitter";
 import AddTaskScreen from "../AddTaskScreen";
+import { useUser } from "../../contexts/userContext";
 
 export default function TasksScreen() {
     const { tasks, removeAnyTasks } = useTasks();
+    const {setUser, logout} = useUser();
     const [loading, setLoading] = useState<boolean>(true);
     const [_, rerender] = useState(0);
     const [filter, setFilter] = useState(TaskStatus.Pending);
@@ -28,6 +30,7 @@ export default function TasksScreen() {
         setLoading(false);
     }, []);
 
+    
     const tasksSelected = useRef<number[]>([]);
 
     const onSelectValue = (id: number) => {
@@ -112,6 +115,18 @@ export default function TasksScreen() {
                         size={18}
                         color="white"
                         onPress={() => eventEmitter.emit("showBottomSheetFilter")}
+                    />
+                </View>
+                <View style={{
+                    backgroundColor: Colors.primary,
+                    borderRadius: 50,
+                    padding: 8,
+                    alignSelf: 'flex-end',
+                }}>
+                    <Feather name="log-in"
+                        size={18}
+                        color="white"
+                        onPress={() => logout()}
                     />
                 </View>
             </View>

@@ -1,46 +1,36 @@
-import { MMKV, useMMKVObject } from "react-native-mmkv";
-import { User } from "../types";
 import { useEffect, useState, useMemo } from "react";
+import { MMKV } from "react-native-mmkv";
+import { User } from "../types";
 import { StorageService } from "../controllers/mmkvController";
 import { UserContext } from "../contexts/userContext";
 
+const defaultStorage = StorageService.storage("default");
+
 export default function UserProvider({ children }: any) {
   const [user, setUser] = useState<User | undefined>();
-  const [storage, setStorage] = useState<MMKV>(() =>
-    StorageService.storage("default")
-  );
 
-  const [userMMKV, setUserMMKV] = useMMKVObject<User | undefined>(
-    "user",
-    storage
-  );
-
-  // Tenta restaurar user salvo do storage padrão
+  // Restaura o usuário salvo ao iniciar
   useEffect(() => {
-    if (!userMMKV) return;
-
-    setUser(userMMKV);
-
-    if (userMMKV?.usuarioId) {
-      const userStorage = StorageService.storage(userMMKV.usuarioId.toString());
-      setStorage(userStorage);
+    const userData = defaultStorage.getString("user");
+    if (userData) {
+      const parsedUser = JSON.parse(userData) as User;
+      setUser(parsedUser);
     }
-  }, [userMMKV]);
+  }, []);
 
-  // Quando usuário é atualizado (login), salva no storage padrão
+  // Salva o usuário ao fazer login
   useEffect(() => {
-    if (user && setUserMMKV) {
-      setUserMMKV(user);
-
-      const defaultStorage = StorageService.storage("default");
+    if (user) {
       defaultStorage.set("user", JSON.stringify(user));
-
-      const scopedStorage = StorageService.storage(user.usuarioId.toString());
-      setStorage(scopedStorage);
     }
   }, [user]);
 
-  const contextValue = useMemo(() => ({ user, setUser }), [user]);
+  const logout = () => {
+    defaultStorage.delete("user");
+    setUser(undefined);
+  };
+
+  const contextValue = useMemo(() => ({ user, setUser, logout }), [user]);
 
   return (
     <UserContext.Provider value={contextValue}>
